@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h3 #{title}: 
+  p #{name} #{_id}
+  p Do you really want to delete this instance?
+    
+  form(method='POST' action='')
+    div.form-group
+      input#instanceid.form-control(type='hidden',name='instanceid', required='true', value=_id )
+
+    button.btn.btn-primary(type='submit') delete
