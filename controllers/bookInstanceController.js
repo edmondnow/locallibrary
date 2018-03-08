@@ -127,10 +127,97 @@ exports.bookinstance_delete_post = function(req, res) {
 
 // Display BookInstance update form on GET.
 exports.bookinstance_update_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: BookInstance update GET');
+    var states = ['Available', 'Maintenance', 'Loaned', 'Reserved']
+    var currentStatus;
+    // Get book, authors and genres for form.
+    async.parallel({
+        bookInstance: function(callback) {
+            BookInstance.findById(req.params.id).populate('book').exec(callback);
+        }}, function(err, results) {
+            if (err) { return next(err); }
+            if (results.bookInstance==null) { // No results.
+                var err = new Error('Book Instance not found');
+                err.status = 404;
+                return next(err);
+            }
+
+            for(var i = 0; i<states.length; i++){
+              if(states[i].toString()==results.bookInstance.status.toString()){
+                currentStatus = results.bookInstance.status.toString();
+                states.splice(i, 1);
+              }
+            }
+            // Success.
+            // Mark our selected genres as checked.
+            res.render('bookinstance_form', { title: 'Update Book Instance', bookInstance: results.bookInstance, 
+              states: states, currentStatus: currentStatus });
+        });
 };
 
 // Handle bookinstance update on POST.
-exports.bookinstance_update_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: BookInstance update POST');
-};
+exports.bookinstance_update_post = [
+
+    // Validate fields.
+    body('imprint', 'Imprint must not be empty.').isLength({ min: 1 }).trim(),
+    body('status', 'status must not be empty.').isLength({ min: 1 }).trim(),
+    body('due_back', 'Date must be not be empty.').isLength({ min: 1 }).trim(),
+
+
+    // Sanitize fields.
+    sanitizeBody('imprint').trim().escape(),
+    sanitizeBody('status').trim().escape(),
+    sanitizeBody('due_back').trim().escape(),
+
+
+    // Process request after validation and sanitization.
+    (req, res, next) => {
+
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create a Book object with escaped/trimmed data and old id.
+        var instance = new BookInstance(
+          { imprint: req.body.imprint,
+            due_back: req.body.due_back,
+            status: req.body.status,
+            _id:req.params.id //This is required, or a new ID will be assigned!
+           });
+
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render form again with sanitized values/error messages.
+
+            // Get all authors and genres for form.
+             async.parallel({
+        bookInstance: function(callback) {
+            BookInstance.findById(req.params.id).populate('book').exec(callback);
+        }}, function(err, results) {
+            if (err) { return next(err); }
+            if (results.bookInstance==null) { // No results.
+                var err = new Error('Book Instance not found');
+                err.status = 404;
+                return next(err);
+            }
+
+            for(var i = 0; i<states.length; i++){
+              if(states[i].toString()==results.bookInstance.status.toString()){
+                currentStatus = results.bookInstance.status.toString();
+                states.splice(i, 1);
+              }
+            }
+            // Success.
+            // Mark our selected genres as checked.
+            res.render('bookinstance_form', { title: 'Update Book Instance', bookInstance: results.bookInstance, 
+              states: states, currentStatus: currentStatus });
+        });
+          return;
+        }
+        else {
+            // Data from form is valid. Update the record.
+            BookInstance.findByIdAndUpdate(req.params.id, instance, {}, function (err,theinstance) {
+                if (err) { return console.log(err); }
+                   // Successful - redirect to book detail page.
+                   res.redirect(theinstance.url);
+                });
+        }
+    } ]

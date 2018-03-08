@@ -1,35 +1,29 @@
 extends layout
-
 block content
-  h1=title
-
+  link(rel='stylesheet', href='/stylesheets/instance.css')
+  script(src="/javascripts/instance.js")
+  h1= title
+  h2= 'id: ' + bookInstance._id
+  h3= 'title: ' +  bookInstance.book.title
   form(method='POST' action='')
     div.form-group
-      label(for='book') Book:
-      select#book.form-control(type='select' placeholder='Select book' name='book' required='true')
-        for book in book_list
-          if bookinstance
-            option(value=book._id selected=(bookinstance.book.toString()==book._id.toString() ? 'selected' : false)) #{book.title}
-          else
-            option(value=book._id) #{book.title}
-        
+      label(for='title') Imprint:
+      input#imprint.form-control(type='text', placeholder='Name of book instance' name='imprint' required='true' value=(undefined===bookInstance ? '' : bookInstance.imprint) )
     div.form-group
-      label(for='imprint') Imprint:
-      input#imprint.form-control(type='text' placeholder='Publisher and date information' name='imprint' required='true' value=(undefined===bookinstance ? '' : bookinstance.imprint))
-    div.form-group
-      label(for='due_back') Date when book available:
-      input#due_back.form-control(type='date' name='due_back' value=(undefined===bookinstance ? '' : bookinstance.due_back))
-            
-    div.form-group
-      label(for='status') Status:
-      select#status.form-control(type='select' placeholder='Select status' name='status' required='true')
-        option(value='Maintenance') Maintenance
-        option(value='Available') Available
-        option(value='Loaned') Loaned
-        option(value='Reserved') Reserved
-
+      label(for='due date') Due back:
+      input#date.form-control(type='date', placeholder='Name of book instance' name='due_back' required='true' value=(undefined===bookInstance ? '' : bookInstance.due_back_formatted) )
+      br
+      div.input-group
+        span.input-group-addon  
+          input.check(type='checkbox', name="status", value=currentStatus, checked) 
+          = currentStatus
+    for state in states   
+      div.input-group
+        span.input-group-addon  
+          input.check(type='checkbox', name="status", value=state) 
+          = state
+    br
     button.btn.btn-primary(type='submit') Submit
-
   if errors 
     ul
       for error in errors

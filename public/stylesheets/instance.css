@@ -1,0 +1,12 @@
+input[type="checkbox"] {
+  float: left;
+}
+
+.input-group {
+  width: 20% !important;
+  text-align: left !important
+}
+.form-control {
+  width: 20% !important;
+}
+}
