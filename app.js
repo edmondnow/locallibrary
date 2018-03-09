@@ -5,6 +5,8 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var compression = require('compression');
+var helmet = require('helmet');
 mongoose.Promise = global.Promise;
 
 var index = require('./routes/index');
@@ -25,6 +27,11 @@ mongoose.connection.once('open', function(){
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+
+//compress before sending
+app.use(compression());
+//use helmet to set http headers to avoid vulnerabilities 
+app.use(helmet());
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));

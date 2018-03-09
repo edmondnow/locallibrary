@@ -1,8 +1,11 @@
 var Author = require('../models/author');
 var async = require('async');
 var Book = require('../models/book');
+var debug = require('debug')('author');
+
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
+
 
 //Display list of all authors
 exports.author_list = function(req, res, next) {
@@ -10,7 +13,9 @@ exports.author_list = function(req, res, next) {
 	Author.find()
 		.sort([['family_name', 'ascending']])
 		.exec(function (err, list_authors){
-			if (err) { return next(err);}
+			if (err) { 
+                debug('find error in author_list ' + err);
+                return next(err);}
 			res.render('author_list', { title: 'Author List', author_list:list_authors})
 		});
 };
@@ -29,7 +34,9 @@ exports.author_detail = function(req, res, next) {
           .exec(callback)
         },
     }, function(err, results) {
-        if (err) { return next(err); } // Error in API usage.
+        if (err) {
+        debug('find error in author_detail ' + err);
+        return next(err); } // Error in API usage.
         if (results.author==null) { // No results.
             var err = new Error('Author not found');
             err.status = 404;
@@ -86,7 +93,9 @@ exports.author_create_post = [
                     date_of_death: req.body.date_of_death
                 });
             author.save(function (err) {
-                if (err) { return next(err); }
+                if (err) { 
+                    debug('find error in author_create_post ' + err);
+                    return next(err); }
                 // Successful - redirect to new author record.
                 res.redirect(author.url);
             });
@@ -105,7 +114,9 @@ exports.author_delete_get = function(req, res, next) {
           Book.find({ 'author': req.params.id }).exec(callback)
         },
     }, function(err, results) {
-        if (err) { return next(err); }
+        if (err) { 
+            debug('find error in author_delete_get ' + err);
+            return next(err); }
         if (results.author==null) { // No results.
             res.redirect('/catalog/authors');
         }
@@ -126,7 +137,9 @@ exports.author_delete_post = function(req, res, next) {
           Book.find({ 'author': req.body.authorid }).exec(callback)
         },
     }, function(err, results) {
-        if (err) { return next(err); }
+        if (err) { 
+            debug('find error in author_delete_post ' + err);
+            return next(err); }
         // Success
         if (results.authors_books.length > 0) {
             // Author has books. Render in same way as for GET route.
@@ -136,13 +149,16 @@ exports.author_delete_post = function(req, res, next) {
         else {
             // Author has no books. Delete object and redirect to the list of authors.
             Author.findByIdAndRemove(req.body.authorid, function deleteAuthor(err) {
-                if (err) { return next(err); }
+                if (err) { 
+                    debug('find error in author_delete_findbyidandremove ' + err);
+                    return next(err); }
                 // Success - go to author list
                 res.redirect('/catalog/authors')
             })
         }
     });
 };
+
 
 // Display Author update form on GET.
 exports.author_update_get = function(req, res) {
@@ -204,7 +220,9 @@ exports.author_update_post = [
                     Author.find(callback);
                 },
             }, function(err, results) {
-                if (err) { return next(err); }
+                if (err) { 
+                    debug('find error in author_update_post ' + err);
+                    return next(err); }
 
                 res.render('author_form', { title: 'Update Author',authors:results.authors });
             });
@@ -213,7 +231,9 @@ exports.author_update_post = [
         else {
             // Data from form is valid. Update the record.
             Author.findByIdAndUpdate(req.params.id, author, {}, function (err,theauthor) {
-                if (err) { return next(err); }
+                if (err) { 
+                    debug('find error in author_update_post_find_and_update ' + err);
+                    return next(err); }
 
                    // Successful - redirect to book detail page.
                    res.redirect(theauthor.url);
